@@ -1,0 +1,23 @@
+{
+  "name": "edot",
+  "version": "1.0.0",
+  "description": "Esta biblioteca facilita a interação com bancos de dados em TypeScript, oferecendo uma interface simples para operações como consultas, inserções, atualizações e exclusões.",
+  "main": "index.js",
+  "scripts": {
+    "test": "run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CandidoRPNeto/edot.git"
+  },
+  "author": "CandidoRPNeto",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CandidoRPNeto/edot/issues"
+  },
+  "homepage": "https://github.com/CandidoRPNeto/edot#readme",
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "typescript": "^5.7.2"
+  }
+}
