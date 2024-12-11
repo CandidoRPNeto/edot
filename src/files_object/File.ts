@@ -2,9 +2,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 interface Archive {
-    title: string;
+    currentFileId: string;
+    name:string;
     path: string;
-    haveOveride: boolean;
 }
 
 interface LogArchive extends Archive {
@@ -14,51 +14,45 @@ interface LogArchive extends Archive {
 }
 
 class Archive implements Archive {
-    title: string;
     path: string;
-    haveOveride: boolean = false;
     
     constructor() {
-        this.title = getTimeInfo();
-        this.path = "";
-        this.haveOveride = false;
+        this.currentFileId = getTimeInfo();
+        this.path = "./files";
     }
 }
 
-class DataFile extends Archive {
-    constructor(data: []) {
+export class DataFile extends Archive {
+    currentFileId: string;
+    constructor(name:string, data: any[]) {
         super();
-        this.path = `${this.path}`;
+        this.name = name;
+        this.path = `${this.path}/${this.name}/data`;
         const dirPath = path.dirname(this.path);
-        if (!fs.existsSync(dirPath)) {
-          fs.mkdirSync(dirPath, { recursive: true });
-        }
-        fs.writeFileSync(`${this.path}/${this.title}.json`, JSON.stringify(data, null, 2));
+        if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
+        fs.writeFileSync(`${this.path}/${this.currentFileId}.json`, JSON.stringify(data, null, 2));
     }
 
-    public getContent(){
-        return fs.readFileSync(`${this.path}/${this.title}.json`, 'utf-8');
+    public getCopyOfCurrentFileContent(){
+        return fs.readFileSync(`${this.path}/${this.currentFileId}.json`, 'utf-8');
     }
 
-    public setContent(data: []) {
-        if(!this.haveOveride) this.title = getTimeInfo();
-        fs.writeFileSync(`${this.path}/${this.title}.json`, JSON.stringify(data, null, 2));
-    }
-
-    public setCsvContent(path: string) {
-    }
-
-    public disableOveride() {
-        this.haveOveride = false; 
-    }
-
-    public enableOveride() {
-        this.haveOveride = true; 
+    public updateCurrentFileContent(data: []) {
+        this.currentFileId = getTimeInfo();
+        fs.writeFileSync(`${this.path}/${this.currentFileId}.json`, JSON.stringify(data, null, 2));
     }
 }
 
-
-
+export class MessageFile extends Archive {
+    constructor(name:string, type:string, data: any[]) {
+        super();
+        this.name = name;
+        this.path = `${this.path}/${type}/${this.name}/data`;
+        const dirPath = path.dirname(this.path);
+        if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
+        fs.writeFileSync(`${this.path}/${this.currentFileId}.json`, JSON.stringify(data, null, 2));
+    }
+}
 
 function getTimeInfo(): string {
     const now = new Date(); 
