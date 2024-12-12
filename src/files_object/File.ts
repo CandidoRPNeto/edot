@@ -23,7 +23,7 @@ class Archive implements Archive {
 }
 
 export class DataFile extends Archive {
-    currentFileId: string;
+    currentFileId: string = "";
     constructor(name:string, data: any[]) {
         super();
         this.name = name;

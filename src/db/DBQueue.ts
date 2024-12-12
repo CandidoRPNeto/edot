@@ -34,6 +34,7 @@ export class PgDataBase {
 
     public async insert(table: string, object: {}) {
         const insert = this.buildInsert(table, object);
+        console.log(insert);
         let data = await this.query(insert.query, insert.values);
         return new DataFile(table, data.rows);
     }
@@ -43,7 +44,7 @@ export class PgDataBase {
         const result: any[] = [];
         for (const obj of objects) {
             const insert = this.buildInsert(table, obj);
-            const response = await client.query(insert.query, insert.values).rows;
+            const response = await (await client.query(insert.query, insert.values)).rows;
             result.push(response);
         }
         await client.release();
@@ -51,10 +52,10 @@ export class PgDataBase {
     }
 
     private buildInsert(table: string, object: {}) {
-        const columns = Object.keys(object).join(",");
+        const columns = Object.keys(object).join(", ");
         const values = Object.values(object);
-        let query = `INSERT INTO ${table}(${columns}) VALUES(${values.map((_, i) => "$" + (i + 1) + ", ")}`;
-        return {query: `${query.slice(0, -2)}) RETURNING id`, values: values};
+        let query = `INSERT INTO ${table} (${columns}) VALUES (${values.map((_, i) => `$${i + 1}`).join(", ")})`;
+        return {query: `${query} RETURNING *`, values: values};
     }
 
     public async update(table: string, values: {}, wheres: {}) {
