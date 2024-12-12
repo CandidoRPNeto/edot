@@ -68,6 +68,15 @@ export class PgDataBase {
         let result = await this.query(query, data);
         return new DataFile(table, result.rows);
     }
+
+    public async delete(table: string, wheres: {}) {
+        let keys = Object.keys(wheres);
+        const values = Object.values(wheres);
+        let query = `DELETE FROM ${table} WHERE ${keys[0]} = $${values.length + 1}`;
+        for (let i = 1; i < keys.length; i++) { query = `${query} AND ${keys[i]} = $${i + values.length + 1}`; }
+        let result = await this.query(query, values);
+        return new DataFile(table, result.rows);
+    }
     
     public async query(query: string, data: unknown[] = []) {
         const client = await this.pool.connect();
