@@ -4,7 +4,9 @@
   "description": "Esta biblioteca facilita a interação com bancos de dados em TypeScript, oferecendo uma interface simples para operações como consultas, inserções, atualizações e exclusões.",
   "main": "index.js",
   "scripts": {
-    "test": "run test"
+    "dev": "ts-node ./src/index.ts",
+    "build": "tsc",
+    "start": "node ./dist/index.js"
   },
   "repository": {
     "type": "git",
@@ -17,7 +19,12 @@
   },
   "homepage": "https://github.com/CandidoRPNeto/edot#readme",
   "devDependencies": {
-    "@types/node": "^22.10.1",
+    "@types/node": "^22.10.2",
+    "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@types/pg": "^8.11.10",
+    "pg": "^8.13.1"
   }
 }
