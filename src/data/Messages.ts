@@ -3,7 +3,7 @@ export class Messages {
     phase: string | undefined;
     table: string | undefined;
 
-    constructor(phase: string,table: string){
+    private constructor(phase: string,table: string){
         this.phase = phase;
         this.table = table;
     }
@@ -18,10 +18,12 @@ export class Messages {
     }
 
     public fail(): Messages {
+        console.log(`${this.phase} falhou na tabela ${this.table}`);
         return this;
     }
 
     public success(): Messages {
+        console.log(`${this.phase} concluido na tabela ${this.table}`);
         return this;
     }
 }
