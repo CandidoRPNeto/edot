@@ -1,4 +1,5 @@
-import { PgDataBase } from './db/DBQueue';
+import { DataFile } from './data/File';
+import { PgDataBase } from './db/SqlDataBase';
 const BANCO = new PgDataBase({
     host: "localhost",
     port: 5432,
@@ -9,18 +10,19 @@ const BANCO = new PgDataBase({
 
 
 async function start() {
-    await BANCO.insert('public.users', {
-        nome: "Testinildo",
-        email: "t@t.t.com",
-        senha: "t123",
-        id: "1"
+    const data = DataFile.retrive("files/public-users/data/29-12-2024_215036690-2.json").content();
+    data.forEach((e: any) => {
+        console.log(e);
+        
     });
-    await BANCO.insert('public.users', {
-        nome: "Testinildo",
-        email: "t@t.t.com",
-        senha: "t123",
-        id: "1"
-    });
+    console.log(data);
+
+    // await BANCO.insert('public.users', {
+    //     nome: "Testinildo",
+    //     email: "t@t.t.com",
+    //     senha: "t123",
+    //     id: "1"
+    // });
 
     // await BANCO.select('public.users', { id: "1" }, []);
 
