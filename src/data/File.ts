@@ -40,6 +40,10 @@ export class DataFile extends Archive {
         return df;
     }
 
+    public destroy(){
+        fs.unlinkSync(`${this.path}/${this.currentFileId}.json`);
+    }
+
     public content(){
         const content = fs.readFileSync(`${this.path}/${this.currentFileId}.json`, 'utf-8');
         return JSON.parse(content);
