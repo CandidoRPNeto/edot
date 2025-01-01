@@ -38,5 +38,4 @@ export class SqlBuilds implements SqlBuilds {
         for (let i = 1; i < keys.length; i++) { query = `${query} ${conector} ${keys[i]} = $${i + 1}`; }
         return query;
     }
-
 }
