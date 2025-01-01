@@ -1,5 +1,5 @@
 {
-  "name": "edot",
+  "name": "logdot",
   "version": "1.0.0",
   "description": "Esta biblioteca facilita a interação com bancos de dados em TypeScript, oferecendo uma interface simples para operações como consultas, inserções, atualizações e exclusões.",
   "main": "index.js",
