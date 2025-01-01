@@ -134,28 +134,32 @@ export class PgDataBase implements SqlDataBase {
     public async reset(path:string) {
         const data = DataFile.retrive(path);
         const content = data.content();
+        let values:any = {};
+        let query:string = "";
+
         switch (data.type) {
             case "inserts":
                 const wheres = content.map((obj: { id: any; }) => ({ id: obj.id }));
-                let keys = Object.keys(wheres);
-                const values = Object.values(wheres);
-                let query = SqlBuilds.delete(data.name,keys);
-                await this.query(query, values);
+                values = Object.values(wheres);
+                query = SqlBuilds.delete(data.name, Object.keys(wheres));
                 break;
             case "deletes":
-                //TODO
+                content.forEach(async (obj: {}) => {
+                    const build = SqlBuilds.insert(data.name,obj);
+                    values = build.values;
+                    query = build.query;
+                });
                 break;
             case "updates":
                 content.old.forEach(async (obj: { id?: any; }) => {
-                    let setKeys = Object.keys(obj);
-                    const query = SqlBuilds.update(data.name,setKeys,["id"]);
-                    const sets = Object.values(obj).concat([obj.id]);
-                    await this.query(query, sets)
+                    query = SqlBuilds.update(data.name, Object.keys(obj), ["id"]);
+                    values= Object.values(obj).concat([obj.id]);
                 });
                 break;
             default:
                 return;
         }
+        await this.query(query, values);
         data.destroy();
     }
     
