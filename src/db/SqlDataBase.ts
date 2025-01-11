@@ -23,45 +23,51 @@ export interface SqlDataBase {
 
 export class PgDataBase implements SqlDataBase {
     private pool!: Pool;
+    private messages!: Messages;
 
-    constructor(connect: PGConnectInfo) {
+    constructor(connect: PGConnectInfo, messages: Messages = new Messages({
+        loading: "start the {query} into {table}",
+        fail: "fail to make {query} into {table}",
+        success: "the {query} into {table} is complete"
+    })) {
         this.pool = new Pool(connect);
+        this.messages = messages;
     }
     
     public async rawQuerySelect(finalTableName: string, query: string, values: [] = []): Promise<DataFile> {
-        const message = Messages.new("RAW QUERY","unkown");
+        this.messages.setVariables({query: "RAW QUERY",table:"unkown"});
         try {
-            message.loading();
+            this.messages.loading();
             let data = await this.query(query, values);
-            message.success();
+            this.messages.success();
             return new DataFile(finalTableName, data.rows);
         } catch (error) { 
-            message.fail();
+            this.messages.fail();
             return new DataFile(finalTableName, {message: "Fail to run", error},"data/logs"); 
         }
     }
 
     public async insert(table: string, object: {}) {
+        this.messages.setVariables({quey: "INSERT",table: table});
         const insert = SqlBuilds.insert(table, object);
-        const message = Messages.new("INSERT",table);
         try {
-            message.loading();
+            this.messages.loading();
             let data = await this.query(insert.query, insert.values);
-            message.success();
+            this.messages.success();
             return new DataFile(table, data.rows,"inserts");   
         } catch (error) { 
-            message.fail();
+            this.messages.fail();
             return new DataFile(table, {message: "Fail to insert", object, error},"inserts/logs"); 
         }
     }
 
     public async manyInserts(table: string, objects: {}[]) {
+        this.messages.setVariables({query: "MANY INSERTS",table: table});
         const client = await this.pool.connect();
         const result: any[] = [];
-        const message = Messages.new("MANY INSERTS",table);
         let lastObj:any;
         try {
-            message.loading();
+            this.messages.loading();
             await client.query('BEGIN');
             for (const obj of objects) {
                 lastObj = obj;
@@ -72,24 +78,24 @@ export class PgDataBase implements SqlDataBase {
             await client.query('COMMIT');
         } catch (error) {
             await client.query('ROLLBACK');
-            message.fail();
+            this.messages.fail();
             new DataFile(table, {message: "Fail to insert", lastObj, error},"inserts/logs"); 
         }
-        message.success();
+        this.messages.success();
         await client.release();
         return new DataFile(table, result,"inserts");
     }
     
     public async select(table: string, wheres: {}, fields: [] = []): Promise<DataFile> {
         let values = Object.values(wheres)? Object.values(wheres) : [];
-        const message = Messages.new("SELECT",table);
-        message.loading();
+        this.messages.setVariables({query:"SELECT",table:table});
+        this.messages.loading();
         try {
             let data = await this.query(SqlBuilds.select(table, Object.keys(wheres), fields), values);
-            message.success();
+            this.messages.success();
             return new DataFile(table, data.rows);
         } catch (error) { 
-            message.fail();
+            this.messages.fail();
             return new DataFile(table, {message: "Fail to select", error},"inserts/logs"); 
         }   
     }
@@ -100,16 +106,16 @@ export class PgDataBase implements SqlDataBase {
         const query = SqlBuilds.update(table,setKeys,wheresKeys);
         const data = Object.values(values).concat(Object.values(wheres));
         const selectQuery = SqlBuilds.select(table, wheresKeys);
-        const message = Messages.new("UPDATE",table);
-        message.loading();
+        this.messages.setVariables({query:"UPDATE",table:table});
+        this.messages.loading();
         try {
             let oldOnes = await this.query(selectQuery, Object.values(wheres));
             await this.query(query, data)
             let newOnes = await this.query(selectQuery, Object.values(wheres));
-            message.success();
+            this.messages.success();
             return new DataFile(table, {new: newOnes.rows, old: oldOnes.rows},"updates");
         } catch (error) {
-            message.fail();
+            this.messages.fail();
             return new DataFile(table, {message: "Fail to update", query, wheres, values, error},"updates/logs"); 
         }
     }
@@ -118,15 +124,15 @@ export class PgDataBase implements SqlDataBase {
         let keys = Object.keys(wheres);
         const values = Object.values(wheres);
         let query = SqlBuilds.delete(table,keys);
-        const message = Messages.new("DELETE",table);
-        message.loading();
+        this.messages.setVariables({query:"DELETE",table:table});
+        this.messages.loading();
         try {
             let result = await this.query(SqlBuilds.select(table, keys), values);
             await this.query(query, values);
-            message.success();
+            this.messages.success();
             return new DataFile(table, result.rows,"deletes");
         } catch (error) { 
-            message.fail();
+            this.messages.fail();
             return new DataFile(table, {message: "Fail to delete", wheres, query, error},"deletes/logs"); 
         }
     }
