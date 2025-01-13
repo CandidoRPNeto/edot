@@ -47,44 +47,47 @@ const file = new DataFile("myFile", data, "example");
 // The file will be created at: ./files/myFile/example/<id>.json
 ```
 #### Methods
+
+##### retrive
 ```typescript
 retrive(path: string): DataFile
 ```
 Creates a DataFile instance based on an existing path.
-##### Parameters
+###### Parameters
 - path (string): Full path of the JSON file to retrieve.
-##### Usage Example
+###### Usage Example
 ```typescript
 const file = DataFile.retrive("./files/myFile/example/12345.json");
 console.log(file.id); // "12345"
 ```
-
+##### destroy
 ```typescript
 destroy(): void
 ```
 Removes the JSON file from the file system.
-##### Usage Example
+###### Usage Example
 ```typescript
 file.destroy();
 ```
-
+##### content
 ```typescript
 content(): any
 ```
 Reads and returns the content of the JSON file.
-##### Usage Example
+###### Usage Example
 ```typescript
 const content = file.content();
 console.log(content); // { key: "value" }
 ```
 
+##### updateContent
 ```typescript
 updateContent(data: any): void
 ```
 Updates the content of the JSON file with new data.
-##### Parameters
+###### Parameters
 - data (any): New data to be saved in the file.
-##### Usage Example
+###### Usage Example
 ```typescript
 file.updateContent({ key: "newValue" });
 ```
