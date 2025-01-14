@@ -1,7 +1,7 @@
 # Edot
 
 ## Index
-- [SqlBuilds.ts](#sql-buildsts)
+- [SqlBuilds.ts](#sqlbuildsts)
 - [File.ts](#filets)
 
 
