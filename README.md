@@ -1,14 +1,98 @@
 # Edot
 
+[SqlBuilds.ts](#sql_builds)
+[File.ts](#file)
 
 
+## SqlBuilds.ts {#sql_builds}
 
+The `SqlBuilds.ts` module provides the SqlBuilds class who generate SQL queries.
 
+### Class SqlBuilds
+The SqlBuilds class provides utility methods for dynamically creating structured SQL queries, reducing the need to write raw SQL manually.
 
+#### insert
+Generates an INSERT query to add a record into the specified table.
 
-## File.ts
+##### Parameters
+- table (string): The name of the database table.
+- object (object): An object where the keys are column names and the values are the respective values to insert.
 
-Part of the **[Library Name]**, the `File.ts` module provides the `Archive` interface and the `DataFile` class, designed for managing JSON files in a structured directory.
+##### Returns
+- An object containing:
+- - query (string): The generated SQL query.
+- - values (any[]): The values to be used in the query.
+
+##### Usage Example
+```typescript
+const table = "users";
+const data = { name: "John Doe", email: "john.doe@example.com" };
+const result = SqlBuilds.insert(table, data);
+
+console.log(result.query);
+// INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *
+console.log(result.values);
+// ["John Doe", "john.doe@example.com"]
+```
+
+#### select
+Generates a SELECT query to retrieve records from the specified table based on conditions.
+
+##### Parameters
+- table (string): The name of the database table.
+- keys (string[]): Array of column names to filter on.
+- fields (string[]): (Optional) Array of column names to include in the result. Defaults to all columns (*).
+
+##### Usage Example
+```typescript
+const table = "users";
+const keys = ["id", "email"];
+const fields = ["name", "email"];
+const query = SqlBuilds.select(table, keys, fields);
+
+console.log(query);
+// SELECT name, email FROM users WHERE id = $1 AND email = $2
+```
+
+#### update
+Generates an UPDATE query to modify records in the specified table based on conditions.
+
+##### Parameters
+- table (string): The name of the database table.
+- setKeys (string[]): Array of column names to update.
+- wheresKeys (string[]): Array of column names to filter on.
+
+##### Usage Example
+```typescript
+const table = "users";
+const setKeys = ["name", "email"];
+const wheresKeys = ["id"];
+const query = SqlBuilds.update(table, setKeys, wheresKeys);
+
+console.log(query);
+// UPDATE users SET name = $1, email = $2 WHERE id = $3
+```
+
+#### delete
+Generates a DELETE query to remove records from the specified table based on conditions.
+
+##### Parameters
+- table (string): The name of the database table.
+- keys (string[]): Array of column names to filter on.
+
+##### Usage Example
+```typescript
+const table = "users";
+const keys = ["id"];
+const query = SqlBuilds.delete(table, keys);
+
+console.log(query);
+// DELETE FROM users WHERE id = $1
+```
+
+## File.ts {#file}
+
+The `File.ts` module provides the `Archive` interface and the `DataFile` class, designed for managing JSON files in a structured directory.
 
 ### Interface `Archive`
 

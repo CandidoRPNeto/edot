@@ -1,14 +1,7 @@
 import { Pool, QueryResult } from "pg";
 import { DataFile } from "../data/File";
 
-export interface SqlBuilds {
-    insert(table: string, object: {}): void;
-    select(table: string, wheres: {}, fields: []): Promise<DataFile>;
-    update(table: string, values: {}, wheres: {}): void;
-    delete(table: string, wheres: {}): void;
-}
-
-export class SqlBuilds implements SqlBuilds {
+export class SqlBuilds {
     public static insert(table: string, object: {}) {
         const columns = Object.keys(object).join(", ");
         const values = Object.values(object);
