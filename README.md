@@ -3,7 +3,7 @@
 ## Index
 - [SqlBuilds.ts](#sql-builds)
 
-- [File.ts](#file)
+- [File.ts](/?tab=readme-ov-file#filets-file)
 
 
 ## SqlBuilds.ts (#sql-builds)
