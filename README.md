@@ -1,10 +1,12 @@
 # Edot
 
-[SqlBuilds.ts](#sql_builds)
-[File.ts](#file)
+## Index
+- [SqlBuilds.ts](#sql-builds)
+
+- [File.ts](#file)
 
 
-## SqlBuilds.ts {#sql_builds}
+## SqlBuilds.ts (#sql-builds)
 
 The `SqlBuilds.ts` module provides the SqlBuilds class who generate SQL queries.
 
