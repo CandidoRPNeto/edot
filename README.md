@@ -1,12 +1,11 @@
 # Edot
 
 ## Index
-- [SqlBuilds.ts](#sql-builds)
+- [SqlBuilds.ts](#sql-buildsts)
+- [File.ts](#filets)
 
-- [File.ts](/?tab=readme-ov-file#filets-file)
 
-
-## SqlBuilds.ts (#sql-builds)
+## SqlBuilds.ts
 
 The `SqlBuilds.ts` module provides the SqlBuilds class who generate SQL queries.
 
@@ -92,7 +91,7 @@ console.log(query);
 // DELETE FROM users WHERE id = $1
 ```
 
-## File.ts {#file}
+## File.ts
 
 The `File.ts` module provides the `Archive` interface and the `DataFile` class, designed for managing JSON files in a structured directory.
 
