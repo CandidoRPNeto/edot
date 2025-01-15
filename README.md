@@ -1,9 +1,99 @@
 # Edot
 
 ## Index
+- [Messages.ts](#messagests)
 - [SqlBuilds.ts](#sqlbuildsts)
 - [File.ts](#filets)
 
+
+## Messages.ts
+The Messages handles customizable messages that can be dynamically built with variables. This class is often used in conjunction with the SQLDatabases to log messages during database operations, such as loading data, handling errors, and confirming success.
+
+### Interface TypeMessages
+This interface defines the structure for the messages passed to the Messages class.
+
+##### Fields
+- loading (string): The default message for a loading state.
+- fail (string): The default message for a failed operation.
+- success (string): The default message for a successful operation.
+
+### Class Messages
+
+The Messages class allows:
+- Setting default messages for different states (loading, fail, success).
+- Using placeholders in messages (e.g., {key}) that can be replaced with dynamic values.
+- Logging the final built messages.
+
+#### constructor
+Generates an INSERT query to add a record into the specified table.
+
+##### Parameters
+- messages (TypeMessages): An object containing default message templates for loading, fail, and success.
+
+#### setVariables
+Sets the variables used to replace placeholders in message templates.
+
+##### Parameters
+- variables ({[key: string]: any}): An object where keys represent placeholders and values are the replacements.
+
+##### Usage Example
+```typescript
+const messages = new Messages({
+    loading: "Loading {operation}...",
+    fail: "Failed to complete {operation}. Reason: {reason}.",
+    success: "{operation} was successful!"
+});
+
+messages.setVariables({
+    operation: "data fetch",
+    reason: "network timeout"
+});
+```
+
+#### loading
+Logs the loading message with variables replaced.
+
+##### Returns
+- Messages: The instance of the Messages class for method chaining.
+
+##### Usage Example
+```typescript
+messages.loading(); 
+// Output: "Loading data fetch..."
+```
+
+#### fail
+Logs the fail message with variables replaced.
+
+##### Returns
+- Messages: The instance of the Messages class for method chaining.
+
+##### Usage Example
+```typescript
+messages.fail(); 
+// Output: "Failed to complete data fetch. Reason: network timeout."
+```
+
+#### success
+Logs the success message with variables replaced.
+
+##### Returns
+- Messages: The instance of the Messages class for method chaining.
+
+##### Usage Example
+```typescript
+messages.success(); 
+// Output: "Data fetch was successful!"
+```
+
+#### buildMessage
+Constructs a message by replacing placeholders with corresponding values from the variables object.
+
+##### Parameters
+- message (string): The message template containing placeholders (e.g., {key}).
+
+##### Returns
+- string: The final message with all placeholders replaced.
 
 ## SqlBuilds.ts
 
