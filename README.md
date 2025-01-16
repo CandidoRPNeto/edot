@@ -1,9 +1,14 @@
 # Edot
+This project is a modular and highly structured system designed for efficient data management, SQL query generation, and JSON file handling. The project integrates dynamic messaging, database abstraction layers, and JSON file operations, allowing developers to use TypeScript and its libraries to work on the database.
 
 ## Index
-- [Messages.ts](#messagests)
-- [SqlBuilds.ts](#sqlbuildsts)
-- [File.ts](#filets)
+
+- data:
+- - [Messages.ts](#messagests)
+- - [File.ts](#filets)
+- db:
+- - [SqlBuilds.ts](#sqlbuildsts)
+- - [SqlDatabase.ts](#sqldatabasets)
 
 
 ## Messages.ts
@@ -94,92 +99,6 @@ Constructs a message by replacing placeholders with corresponding values from th
 
 ##### Returns
 - string: The final message with all placeholders replaced.
-
-## SqlBuilds.ts
-
-The `SqlBuilds.ts` module provides the SqlBuilds class who generate SQL queries.
-
-### Class SqlBuilds
-The SqlBuilds class provides utility methods for dynamically creating structured SQL queries, reducing the need to write raw SQL manually.
-
-#### insert
-Generates an INSERT query to add a record into the specified table.
-
-##### Parameters
-- table (string): The name of the database table.
-- object (object): An object where the keys are column names and the values are the respective values to insert.
-
-##### Returns
-- An object containing:
-- - query (string): The generated SQL query.
-- - values (any[]): The values to be used in the query.
-
-##### Usage Example
-```typescript
-const table = "users";
-const data = { name: "John Doe", email: "john.doe@example.com" };
-const result = SqlBuilds.insert(table, data);
-
-console.log(result.query);
-// INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *
-console.log(result.values);
-// ["John Doe", "john.doe@example.com"]
-```
-
-#### select
-Generates a SELECT query to retrieve records from the specified table based on conditions.
-
-##### Parameters
-- table (string): The name of the database table.
-- keys (string[]): Array of column names to filter on.
-- fields (string[]): (Optional) Array of column names to include in the result. Defaults to all columns (*).
-
-##### Usage Example
-```typescript
-const table = "users";
-const keys = ["id", "email"];
-const fields = ["name", "email"];
-const query = SqlBuilds.select(table, keys, fields);
-
-console.log(query);
-// SELECT name, email FROM users WHERE id = $1 AND email = $2
-```
-
-#### update
-Generates an UPDATE query to modify records in the specified table based on conditions.
-
-##### Parameters
-- table (string): The name of the database table.
-- setKeys (string[]): Array of column names to update.
-- wheresKeys (string[]): Array of column names to filter on.
-
-##### Usage Example
-```typescript
-const table = "users";
-const setKeys = ["name", "email"];
-const wheresKeys = ["id"];
-const query = SqlBuilds.update(table, setKeys, wheresKeys);
-
-console.log(query);
-// UPDATE users SET name = $1, email = $2 WHERE id = $3
-```
-
-#### delete
-Generates a DELETE query to remove records from the specified table based on conditions.
-
-##### Parameters
-- table (string): The name of the database table.
-- keys (string[]): Array of column names to filter on.
-
-##### Usage Example
-```typescript
-const table = "users";
-const keys = ["id"];
-const query = SqlBuilds.delete(table, keys);
-
-console.log(query);
-// DELETE FROM users WHERE id = $1
-```
 
 ## File.ts
 
@@ -275,3 +194,213 @@ Created files are organized in the following format:
 - name: Base name of the file.
 - type: File type (defined in the constructor).
 - id: Automatically generated unique identifier.
+
+## SqlBuilds.ts
+
+The `SqlBuilds.ts` module provides the SqlBuilds class who generate SQL queries.
+
+### Class SqlBuilds
+The SqlBuilds class provides utility methods for dynamically creating structured SQL queries, reducing the need to write raw SQL manually.
+
+#### insert
+Generates an INSERT query to add a record into the specified table.
+
+##### Parameters
+- table (string): The name of the database table.
+- object (object): An object where the keys are column names and the values are the respective values to insert.
+
+##### Returns
+- An object containing:
+- - query (string): The generated SQL query.
+- - values (any[]): The values to be used in the query.
+
+##### Usage Example
+```typescript
+const table = "users";
+const data = { name: "John Doe", email: "john.doe@example.com" };
+const result = SqlBuilds.insert(table, data);
+
+console.log(result.query);
+// INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *
+console.log(result.values);
+// ["John Doe", "john.doe@example.com"]
+```
+
+#### select
+Generates a SELECT query to retrieve records from the specified table based on conditions.
+
+##### Parameters
+- table (string): The name of the database table.
+- keys (string[]): Array of column names to filter on.
+- fields (string[]): (Optional) Array of column names to include in the result. Defaults to all columns (*).
+
+##### Usage Example
+```typescript
+const table = "users";
+const keys = ["id", "email"];
+const fields = ["name", "email"];
+const query = SqlBuilds.select(table, keys, fields);
+
+console.log(query);
+// SELECT name, email FROM users WHERE id = $1 AND email = $2
+```
+
+#### update
+Generates an UPDATE query to modify records in the specified table based on conditions.
+
+##### Parameters
+- table (string): The name of the database table.
+- setKeys (string[]): Array of column names to update.
+- wheresKeys (string[]): Array of column names to filter on.
+
+##### Usage Example
+```typescript
+const table = "users";
+const setKeys = ["name", "email"];
+const wheresKeys = ["id"];
+const query = SqlBuilds.update(table, setKeys, wheresKeys);
+
+console.log(query);
+// UPDATE users SET name = $1, email = $2 WHERE id = $3
+```
+
+#### delete
+Generates a DELETE query to remove records from the specified table based on conditions.
+
+##### Parameters
+- table (string): The name of the database table.
+- keys (string[]): Array of column names to filter on.
+
+##### Usage Example
+```typescript
+const table = "users";
+const keys = ["id"];
+const query = SqlBuilds.delete(table, keys);
+
+console.log(query);
+// DELETE FROM users WHERE id = $1
+```
+## SqlDatabase.ts
+
+This file provides a database abstraction layer. It defines interfaces and classes for interacting with multiple types of databases (PostgreSQL, MySql, etc... ) in a structured and efficient way. Each method integrates with the Messages class for consistent logging of loading, success, and failure states.
+
+### Interfaces
+
+### PGConnectInfo
+Defines the structure for PostgreSQL connection information.
+
+Fields:
+- host (string): The database host.
+- port (number): The port number for the database connection.
+- user (string): The username for authentication.
+- database (string): The database name.
+- password (string): The password for authentication.
+
+### SqlDataBase
+Defines the contract for database operations.
+
+Methods:
+- rawQuerySelect(finalTableName: string, query: string, values: []): Promise<DataFile>
+- insert(table: string, object: {}): void
+- manyInserts(table: string, objects: {}[]): void
+- select(table: string, wheres: {}, fields: []): Promise<DataFile>
+- update(table: string, values: {}, wheres: {}): void
+- delete(table: string, wheres: {}): void
+- query(query: string, data: unknown[]): void
+
+### Classes
+
+### PgDataBase
+This class is a PostgreSQL database abstraction layer using the pg library. 
+
+#### constructor
+##### Parameters
+- connect (PGConnectInfo): The PostgreSQL connection information.
+- messages (Messages, optional): An instance of Messages for logging. Defaults to a pre-configured instance.
+##### Usage Example
+```typescript
+const db = new PgDataBase({
+    host: "localhost",
+    port: 5432,
+    user: "user",
+    database: "mydb",
+    password: "password",
+});
+```
+#### rawQuerySelect
+Executes a raw SQL query and wraps the result in a DataFile.
+##### Parameters
+- finalTableName (string): Logical table name for the resulting data.
+- query (string): SQL query to execute.
+- values (array): Query parameter values.
+##### Usage Example
+```typescript
+await db.rawQuerySelect("users", "SELECT * FROM users WHERE age > $1", [30]);
+```
+#### insert
+Inserts a single row into a table.
+##### Parameters
+- table (string): Target table.
+- object (object): Row data to insert.
+##### Usage Example
+```typescript
+await db.insert("users", { name: "John", age: 30 });
+```
+#### manyInserts
+Inserts multiple rows into a table in a single transaction.
+##### Parameters
+- table (string): Target table.
+- objects (array of objects): Rows to insert.
+##### Usage Example
+```typescript
+await db.manyInserts("users", [
+    { name: "Alice", age: 25 },
+    { name: "Bob", age: 30 },
+]);
+```
+#### select
+Selects rows from a table based on conditions.
+##### Parameters
+- table (string): Target table.
+- wheres (object): Conditions for selection.
+- fields (array): Fields to retrieve (optional).
+##### Usage Example
+```typescript
+await db.select("users", { age: 30 }, ["name", "email"]);
+```
+#### update
+Updates rows in a table.
+##### Parameters
+- table (string): Target table.
+- values (object): New values for the update.
+- wheres (object): Conditions to match.
+##### Usage Example
+```typescript
+await db.update("users", { age: 31 }, { name: "John" });
+```
+#### delete
+Deletes rows from a table.
+##### Parameters
+- table (string): Target table.
+- wheres (object): Conditions for deletion.
+##### Usage Example
+```typescript
+await db.delete("users", { name: "John" });
+```
+#### reset
+Resets a table to its original state using a DataFile.
+##### Parameters
+- path (string): Path to the DataFile for the reset operation.
+##### Usage Example
+```typescript
+await db.reset("path/to/datafile.json");
+```
+#### query
+Executes a custom query.
+##### Parameters
+- query (string): SQL query to execute.
+- data (array): Query parameter values.
+##### Usage Example
+```typescript
+await db.query("SELECT * FROM users WHERE age > $1", [30]);
+```
