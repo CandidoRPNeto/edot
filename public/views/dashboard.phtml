@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema de Gestão de Turmas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="container my-4">
+        <div class="row mb-4">
+            <div class="col-md-11">
+                <h1>Dashboard</h1>
+                <p class="lead">Bem-vindo ao Sistema de Gestão de Turmas</p>
+            </div>
+            <div class="col-md-1 text-end">
+                <a type="button" class="btn btn-sm btn-outline-primary" href="/logout">
+                    Logout
+                </a>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-md-4 mb-4">
+                <div class="card border-success h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 me-3">
+                                <i class="fas fa-chalkboard fa-3x text-success"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="card-title">Turmas</h5>
+                                <h2 class="mb-0" id="total-turmas">...</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-success">
+                        <a href="/turmas" class="btn btn-sm btn-outline-success">Ver todas as turmas</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card border-primary h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 me-3">
+                                <i class="fas fa-user-graduate fa-3x text-primary"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="card-title">Alunos</h5>
+                                <h2 class="mb-0" id="total-alunos">...</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-primary">
+                        <a href="/alunos" class="btn btn-sm btn-outline-primary">Ver todos os alunos</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card border-warning h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 me-3">
+                                <i class="fas fa-clipboard-list fa-3x text-warning"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="card-title">Matrículas</h5>
+                                <h2 class="mb-0" id="total-matriculas">...</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-warning">
+                        <a href="/matriculas" class="btn btn-sm btn-outline-warning">Ver todas as matrículas</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/public/js/adapters/ApiAdapter.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarEstatisticas();
+        });
+
+        async function carregarEstatisticas() {
+            try {
+                const totalTurmas = document.getElementById('total-turmas');
+                const totalAlunos = document.getElementById('total-alunos');
+                const totalMatriculas = document.getElementById('total-matriculas');
+                const turmasResp = await api.getDashInfo();
+                totalTurmas.innerHTML = turmasResp.class;
+                totalMatriculas.innerHTML = turmasResp.enrollments;
+                totalAlunos.innerHTML = turmasResp.students;
+            } catch (erro) {
+                console.error('Erro ao carregar dados para matrícula:', erro);
+                alert('Erro ao carregar dados. Tente novamente mais tarde.');
+            }
+        }
+    </script>
+</body>
+
+</html>

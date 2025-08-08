@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema de Gestão de Turmas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/public/css/auth.css">
+</head>
+
+<body class="text-center">
+    <main class="form-signin">
+        <div id="alertas"></div>
+        <div class="card">
+            <div class="card-body p-4">
+                <div class="tab-content" id="authTabContent">
+                    <div class="tab-pane fade show active" id="login-pane" role="tabpanel" aria-labelledby="login-tab"
+                        tabindex="0">
+                        <form id="form-login">
+                            <div class="form-floating">
+                                <input type="email" class="form-control" id="login-email" placeholder="nome@exemplo.com"
+                                    required>
+                                <label for="login-email">E-mail</label>
+                            </div>
+                            <div class="form-floating">
+                                <input type="password" class="form-control" id="login-senha" placeholder="Senha"
+                                    required>
+                                <label for="login-senha">Senha</label>
+                            </div>
+                            <button class="w-100 btn btn-lg btn-primary" type="submit">
+                                <i class="fas fa-sign-in-alt me-2"></i> Entrar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/public/js/adapters/ApiAdapter.js"></script>
+    <script src="/public/js/components/Validator.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const formLogin = document.getElementById('form-login');
+            const loginEmail = document.getElementById('login-email');
+            const loginSenha = document.getElementById('login-senha');
+            const alertas = document.getElementById('alertas');
+            const params = new URLSearchParams(window.location.search);
+
+            const mostrarAlerta = (mensagem, tipo = 'info') => {
+                alertas.innerHTML = `
+                    <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
+                        ${mensagem}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                    </div>
+                `;
+            };
+
+            if (params.has('error')) {
+                mostrarAlerta(decodeURIComponent(params.get('error')), 'danger');
+            }
+
+            if (params.has('register') && params.get('register') === 'success') {
+                mostrarAlerta('Cadastro realizado com sucesso! Faça login para continuar.', 'success');
+            }
+
+            if (params.has('tab') && params.get('tab') === 'register') {
+                const registerTab = new bootstrap.Tab(document.getElementById('register-tab'));
+                registerTab.show();
+            }
+
+            formLogin.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                if (!loginEmail.value || !loginSenha.value) {
+                    mostrarAlerta('Preencha todos os campos', 'danger');
+                    return;
+                }
+
+                try {
+                    const resposta = await api.login(loginEmail.value, loginSenha.value);
+                    if (resposta.token) {
+                        localStorage.setItem('token', resposta.token);
+                    }
+                    window.location.href = '/dashboard';
+                } catch (erro) {
+                    mostrarAlerta('E-mail ou senha incorretos', 'danger');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

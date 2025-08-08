@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Aluno</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="container my-4">
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1 id="titulo-pagina">Novo Aluno</h1>
+            </div>
+            <div class="col-md-4 text-end">
+                <button onclick="history.back()" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </button>
+            </div>
+        </div>
+
+        <div id="alertas"></div>
+
+        <div class="card">
+            <div class="card-body">
+                <form id="form-aluno" class="needs-validation" novalidate>
+                    <input type="hidden" id="aluno_id" name="id">
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="nome" class="form-label">Nome completo *</label>
+                            <input type="text" class="form-control" id="nome" name="nome" required minlength="3"
+                                placeholder="Digite o nome completo">
+                            <div class="invalid-feedback" id="erro-nome">
+                                O nome deve ter no mínimo 3 caracteres.
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="cpf" class="form-label">CPF *</label>
+                            <input type="text" class="form-control" id="cpf" name="cpf" required
+                                placeholder="000.000.000-00">
+                            <div class="invalid-feedback" id="erro-cpf">
+                                Digite um CPF válido.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="data_nascimento" class="form-label">Data de Nascimento *</label>
+                            <input type="date" class="form-control" id="data_nascimento" name="data_nascimento"
+                                required>
+                            <div class="invalid-feedback" id="erro-data-nascimento">
+                                Informe uma data de nascimento válida.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">E-mail *</label>
+                            <input type="email" class="form-control" id="email" name="email" required
+                                placeholder="exemplo@email.com">
+                            <div class="invalid-feedback" id="erro-email">
+                                Digite um e-mail válido.
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="senha" class="form-label">Senha *</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="senha" name="senha" required
+                                    minlength="8" placeholder="Digite uma senha forte">
+                                <button class="btn btn-outline-secondary" type="button" id="toggle-senha">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="form-text text-muted">
+                                A senha deve ter no mínimo 8 caracteres, incluindo letras maiúsculas, minúsculas,
+                                números e símbolos.
+                            </div>
+                            <div class="invalid-feedback" id="erro-senha">
+                                A senha não atende aos requisitos mínimos de segurança.
+                            </div>
+                        </div>
+                    </div>
+                <div class="d-flex justify-content-between">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                        <a type="reset" class="btn btn-warning me-md-2" id="lista-matricula" style="display: none;">
+                            <i class="fas fa-clipboard-list"></i> Ver Turmas Matriculadas
+                        </a>
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="reset" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-undo"></i> Limpar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Salvar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/public/js/adapters/ApiAdapter.js"></script>
+    <script src="/public/js/components/Validator.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('form-aluno');
+            const listaMatriculas = document.getElementById('lista-matricula');
+            const campos = {
+                id: document.getElementById('aluno_id'),
+                nome: document.getElementById('nome'),
+                cpf: document.getElementById('cpf'),
+                email: document.getElementById('email'),
+                dataNascimento: document.getElementById('data_nascimento'),
+                senha: document.getElementById('senha')
+            };
+
+            let modoEdicao = false;
+
+            const alertas = document.getElementById('alertas');
+
+            const mostrarAlerta = (mensagem, tipo = 'info') => {
+                alertas.innerHTML = `
+                    <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
+                        ${mensagem}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                    </div>
+                `;
+
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+
+            campos.cpf.addEventListener('input', (e) => {
+                let cpf = e.target.value.replace(/\D/g, '');
+                if (cpf.length > 11) {
+                    cpf = cpf.slice(0, 11);
+                }
+                if (cpf.length > 9) {
+                    cpf = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+                } else if (cpf.length > 6) {
+                    cpf = cpf.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+                } else if (cpf.length > 3) {
+                    cpf = cpf.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+                }
+
+                e.target.value = cpf;
+            });
+
+            document.getElementById('toggle-senha').addEventListener('click', () => {
+                const senhaInput = campos.senha;
+                const icon = document.querySelector('#toggle-senha i');
+
+                if (senhaInput.type === 'password') {
+                    senhaInput.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    senhaInput.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+
+            const verificarModoEdicao = async () => {
+                const url = window.location.pathname;
+                const match = url.match(/\/alunos\/editar\/(\d+)/);
+
+                if (match && match[1]) {
+                    const alunoId = match[1];
+                    modoEdicao = true;
+                    document.getElementById('titulo-pagina').textContent = 'Editar Aluno';
+                    document.title = 'Editar Aluno';
+                    try {
+                        const aluno = await api.obterAluno(alunoId);
+                        campos.id.value = aluno.id;
+                        campos.nome.value = aluno.name;
+                        campos.cpf.value = aluno.cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
+                        campos.email.value = aluno.email;
+                        campos.dataNascimento.value = aluno.birth_date;
+                        campos.senha.required = false;
+                        const href = `/matriculas?search=${aluno.name}&filter=1&page=1&studentid=${aluno.id}`;
+                        listaMatriculas.href = href;
+                        listaMatriculas.style.display = 'inline-block';
+                    } catch (erro) {
+                        mostrarAlerta(`Erro ao carregar dados: ${erro.message}`, 'danger');
+                    }
+                }
+            };
+
+            const validarFormulario = () => {
+                const regras = {
+                    nome: [
+                        { tipo: 'campoPreenchido', mensagem: 'O nome é obrigatório.' },
+                        { tipo: 'tamanhoMinimo', mensagem: 'O nome deve ter no mínimo 3 caracteres.', parametros: [3] }
+                    ],
+                    cpf: [
+                        { tipo: 'campoPreenchido', mensagem: 'O CPF é obrigatório.' },
+                        { tipo: 'formatoCpf', mensagem: 'Digite um CPF válido.' }
+                    ],
+                    email: [
+                        { tipo: 'campoPreenchido', mensagem: 'O e-mail é obrigatório.' },
+                        { tipo: 'formatoEmail', mensagem: 'Digite um e-mail válido.' }
+                    ],
+                    data_nascimento: [
+                        { tipo: 'campoPreenchido', mensagem: 'A data de nascimento é obrigatória.' }
+                    ]
+                };
+
+                if (!modoEdicao || campos.senha.value !== '') {
+                    regras.senha = [
+                        { tipo: 'campoPreenchido', mensagem: 'A senha é obrigatória.' },
+                        { tipo: 'senhaForte', mensagem: 'A senha deve ter no mínimo 8 caracteres, com letras maiúsculas, minúsculas, números e símbolos.' }
+                    ];
+                }
+
+                const dados = {
+                    nome: campos.nome.value.trim(),
+                    cpf: campos.cpf.value.trim(),
+                    email: campos.email.value.trim(),
+                    data_nascimento: campos.dataNascimento.value,
+                    senha: campos.senha.value
+                };
+
+                return Validator.validarFormulario(dados, regras);
+            };
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                form.classList.remove('was-validated');
+                const { valido, erros } = validarFormulario();
+
+                if (!valido) {
+                    Object.keys(erros).forEach(campo => {
+                        const input = document.getElementById(campo);
+                        if (input) {
+                            input.classList.add('is-invalid');
+                            const feedback = document.getElementById(`erro-${campo}`);
+                            if (feedback) {
+                                feedback.textContent = erros[campo][0];
+                            }
+                        }
+                    });
+                    mostrarAlerta('Por favor, corrija os erros no formulário.', 'danger');
+                    return;
+                }
+
+                const dadosAluno = {
+                    name: campos.nome.value.trim(),
+                    cpf: campos.cpf.value.trim().replace(/\D/g, ''),
+                    email: campos.email.value.trim(),
+                    birth_date: campos.dataNascimento.value
+                };
+
+                if (campos.senha.value !== '') {
+                    dadosAluno.password = campos.senha.value;
+                }
+
+                try {
+                    let resposta;
+
+                    if (modoEdicao) {
+                        resposta = await api.atualizarAluno(campos.id.value, dadosAluno);
+                        window.location.href = `/alunos?message=${encodeURIComponent('Aluno atualizado com sucesso!')}&type=success`;
+                    } else {
+                        resposta = await api.cadastrarAluno(dadosAluno);
+                        window.location.href = `/alunos?message=${encodeURIComponent('Aluno cadastrado com sucesso!')}&type=success`;
+                    }
+                } catch (erro) {
+                    if (erro.message.includes('CPF')) {
+                        mostrarAlerta('Este CPF já está cadastrado no sistema.', 'danger');
+                    } else if (erro.message.includes('e-mail') || erro.message.includes('email')) {
+                        mostrarAlerta('Este e-mail já está cadastrado no sistema.', 'danger');
+                    } else {
+                        mostrarAlerta(`Erro ao salvar: ${erro.message}`, 'danger');
+                    }
+                }
+            });
+
+            Array.from(form.elements).forEach(elemento => {
+                elemento.addEventListener('input', () => {
+                    elemento.classList.remove('is-invalid');
+                });
+            });
+
+            verificarModoEdicao();
+        });
+    </script>
+</body>
+
+</html>

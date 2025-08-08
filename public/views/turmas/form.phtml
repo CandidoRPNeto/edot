@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Turma</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container my-4">
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1 id="titulo-pagina">Nova Turma</h1>
+            </div>
+            <div class="col-md-4 text-end">
+                <button onclick="history.back()" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </button>
+            </div>
+        </div>
+        <div id="alertas"></div>
+        <div class="card">
+            <div class="card-body">
+                <form id="form-turma" class="needs-validation" novalidate>
+                    <input type="hidden" id="turma_id" name="id">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="nome" class="form-label">Nome da Turma *</label>
+                            <input type="text" class="form-control" id="nome" name="nome" required 
+                                   minlength="3" placeholder="Digite o nome da turma">
+                            <div class="invalid-feedback" id="erro-nome">
+                                O nome da turma deve ter no mínimo 3 caracteres.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="descricao" class="form-label">Descrição</label>
+                            <textarea class="form-control" id="descricao" name="descricao" rows="3" 
+                                      placeholder="Descreva detalhes sobre a turma..." required></textarea>
+                            <div class="invalid-feedback" id="erro-descricao">
+                                A turma precisa de uma descrição.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                            <a type="reset" class="btn btn-warning me-md-2" id="lista-matricula" style="display: none;">
+                                <i class="fas fa-clipboard-list"></i> Ver Alunos Matriculados
+                            </a>
+                        </div>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="reset" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-undo"></i> Limpar
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Salvar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/public/js/adapters/ApiAdapter.js"></script>
+    <script src="/public/js/components/Validator.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('form-turma');
+            const alertas = document.getElementById('alertas');
+            const listaMatriculas = document.getElementById('lista-matricula');
+            const campos = {
+                id: document.getElementById('turma_id'),
+                name: document.getElementById('nome'),
+                description: document.getElementById('descricao')
+            };
+
+            let modoEdicao = false;
+            
+            const mostrarAlerta = (mensagem, tipo = 'info') => {
+                alertas.innerHTML = `
+                    <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
+                        ${mensagem}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                    </div>
+                `;
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+            
+            const verificarModoEdicao = async () => {
+                const url = window.location.pathname;
+                const match = url.match(/\/turmas\/editar\/(\d+)/);
+                
+                if (match && match[1]) {
+                    const turmaId = match[1];
+                    modoEdicao = true;
+
+                    document.getElementById('titulo-pagina').textContent = 'Editar Turma';
+                    document.title = 'Editar Turma';
+                    
+                    try {
+                        const turma = await api.obterTurma(turmaId);
+                        
+                        campos.id.value = turma.id;
+                        campos.name.value = turma.name;
+                        campos.description.value = turma.description;
+                        const href = `/matriculas?search=${turma.name}&filter=2&page=1&classid=${turma.id}`;
+                        listaMatriculas.href = href;
+                        listaMatriculas.style.display = 'inline-block';
+                        
+                    } catch (erro) {
+                        mostrarAlerta(`Erro ao carregar dados: ${erro.message}`, 'danger');
+                    }
+                }
+            };
+            
+            const validarFormulario = () => {
+                const regras = {
+                    nome: [
+                        { tipo: 'campoPreenchido', mensagem: 'O nome é obrigatório.' },
+                        { tipo: 'tamanhoMinimo', mensagem: 'O nome deve ter no mínimo 3 caracteres.', parametros: [3] }
+                    ],
+                    descricao: [
+                        { tipo: 'campoPreenchido', mensagem: 'A descrição é obrigatória.' }
+                    ]
+                };
+
+                const dados = {
+                    nome: campos.name.value.trim(),
+                    descricao: campos.description.value.trim()
+                };
+
+                const resultado = Validator.validarFormulario(dados, regras);
+                
+                return resultado;
+            };
+            
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                form.classList.remove('was-validated');
+                
+                const { valido, erros } = validarFormulario();
+                
+                
+                if (!valido) {
+                    Object.keys(erros).forEach(campo => {
+                        const input = document.getElementById(campo);
+                        if (input) {
+                            input.classList.add('is-invalid');
+                            
+                            const feedback = document.getElementById(`erro-${campo.replace('_', '-')}`);
+                            if (feedback) {
+                                feedback.textContent = erros[campo][0];
+                            }
+                        }
+                    });
+
+                    mostrarAlerta('Por favor, corrija os erros no formulário.', 'danger');
+                    return;
+                }
+                
+                const dadosTurma = {
+                    name: campos.name.value.trim(),
+                    description: campos.description.value.trim()
+                };
+                
+                try {
+                    let resposta;
+                    
+                    if (modoEdicao) {
+                        resposta = await api.atualizarTurma(campos.id.value, dadosTurma);
+                        window.location.href = `/turmas?message=${encodeURIComponent('Turma atualizada com sucesso!')}&type=success`;
+                    } else {
+                        resposta = await api.cadastrarTurma(dadosTurma);
+                        window.location.href = `/turmas?message=${encodeURIComponent('Turma cadastrada com sucesso!')}&type=success`;
+                    }
+                } catch (erro) {
+                    if (erro.message.includes('código') || erro.message.includes('codigo')) {
+                        mostrarAlerta('Este código de turma já está cadastrado no sistema.', 'danger');
+                    } else {
+                        mostrarAlerta(`Erro ao salvar: ${erro.message}`, 'danger');
+                    }
+                }
+            });
+            
+            Array.from(form.elements).forEach(elemento => {
+                elemento.addEventListener('input', () => {
+                    elemento.classList.remove('is-invalid');
+                });
+            });
+            
+            verificarModoEdicao();
+        });
+    </script>
+</body>
+</html>

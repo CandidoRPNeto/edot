@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listagem de Alunos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="container my-4">
+        <div class="row mb-4">
+            <div class="col-md-9 d-flex align-items-center gap-2">
+                <a href="/dashboard" class="h4 text-secondary text-decoration-none mb-0">dashboard/</a>
+                <h1 class="mb-0">Alunos</h1>
+            </div>
+            <div class="col-md-1 text-end">
+                <button onclick="history.back()" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </button>
+            </div>
+            <div class="col-md-2 text-end">
+                <a href="/alunos/cadastrar" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Novo Aluno
+                </a>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-10">
+                        <label for="filtro-turma" class="form-label">Buscar Por Nome</label>
+                        <input type="text" id="termo-busca" class="form-control"
+                            placeholder="Buscar matricula pelo nome...">
+                    </div>
+                    <div class="col-md-2">
+                        <div class="d-grid d-md-flex justify-content-md-end mt-4">
+                            <button type="button" class="btn btn-primary" id="btn-buscar">
+                                <i class="fas fa-search"></i> Buscar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="alertas"></div>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="text-start">Nome</th>
+                        <th class="text-start">E-mail</th>
+                        <th class="text-start">CPF</th>
+                        <th>Turmas Matriculadas</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-alunos">
+                </tbody>
+            </table>
+        </div>
+
+        <nav aria-label="Navegação de páginas">
+            <ul class="pagination justify-content-center" id="paginacao">
+            </ul>
+        </nav>
+    </div>
+
+    <div class="modal fade" id="modalConfirmarExclusao" tabindex="-1" aria-labelledby="modalExclusaoLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalExclusaoLabel">Confirmar Exclusão</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem certeza que deseja excluir o aluno <strong id="nome-aluno-excluir"></strong>?</p>
+                    <p class="text-danger">Esta ação não pode ser desfeita.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="btn-confirmar-exclusao">Excluir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/public/js/adapters/ApiAdapter.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let paginaAtual = 1;
+            let termoBusca = '';
+            let totalPaginas = 1;
+
+            const listaAlunos = document.getElementById('lista-alunos');
+            const paginacao = document.getElementById('paginacao');
+            const termoBuscaInput = document.getElementById('termo-busca');
+            const btnBuscar = document.getElementById('btn-buscar');
+            const alertas = document.getElementById('alertas');
+
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('page')) {
+                paginaAtual = parseInt(urlParams.get('page')) || 1;
+            }
+            if (urlParams.has('search')) {
+                termoBusca = urlParams.get('search');
+                termoBuscaInput.value = termoBusca;
+            }
+
+            const carregarAlunos = async () => {
+                try {
+                    listaAlunos.innerHTML = '<tr><td colspan="5" class="text-center">Carregando...</td></tr>';
+
+                    const resposta = await api.listarAlunos(paginaAtual, termoBusca);
+
+                    totalPaginas = resposta.total_pages || 1;
+
+                    if (resposta.items.length === 0) {
+                        listaAlunos.innerHTML = '<tr><td colspan="5" class="text-center">Nenhum aluno encontrado</td></tr>';
+                        renderizarPaginacao();
+                        return;
+                    }
+
+                    listaAlunos.innerHTML = '';
+                    resposta.items.forEach(aluno => {
+                        const linha = document.createElement('tr');
+                        const badgeClass = aluno.enrollments_count > 0 ? 'bg-primary' : 'bg-light text-dark';
+                        linha.innerHTML = `
+                            <td class="text-start">${aluno.name}</td>
+                            <td class="text-start">${aluno.email}</td>
+                            <td class="text-start">${aluno.cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4')}</td>
+                            <td>
+                                <span class="badge ${badgeClass}">${aluno.enrollments_count} materia(s)</span>
+                            </td>
+                            <td >
+                                <div class="btn-group" role="group">
+                                    <a href="/alunos/editar/${aluno.id}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i> Editar
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-danger " 
+                                        onclick="confirmarExclusao(${aluno.id}, '${aluno.name}')">
+                                        <i class="fas fa-trash"></i> Apagar
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+                        listaAlunos.appendChild(linha);
+                    });
+                    renderizarPaginacao();
+                } catch (erro) {
+                    mostrarAlerta('Erro ao carregar alunos: ' + erro.message, 'danger');
+                    listaAlunos.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Erro ao carregar dados</td></tr>';
+                }
+            };
+
+            const renderizarPaginacao = () => {
+                paginacao.innerHTML = '';
+
+                const btnAnterior = document.createElement('li');
+                btnAnterior.className = `page-item ${paginaAtual === 1 ? 'disabled' : ''}`;
+                btnAnterior.innerHTML = `
+                    <a class="page-link" href="/alunos?page=${paginaAtual - 1}">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                `;
+                paginacao.appendChild(btnAnterior);
+
+                for (let i = 1; i <= totalPaginas; i++) {
+                    const item = document.createElement('li');
+                    item.className = `page-item ${paginaAtual === i ? 'active' : ''}`;
+                    item.innerHTML = `
+                        <a class="page-link" href="/alunos?page=${i}">${i}</a>
+                    `;
+                    paginacao.appendChild(item);
+                }
+
+                const btnProximo = document.createElement('li');
+                btnProximo.className = `page-item ${paginaAtual === totalPaginas ? 'disabled' : ''}`;
+                btnProximo.innerHTML = `
+                    <a class="page-link" href="/alunos?page=${paginaAtual + 1}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                `;
+                paginacao.appendChild(btnProximo);
+            };
+
+            btnBuscar.addEventListener('click', () => {
+                termoBusca = termoBuscaInput.value.trim();
+                paginaAtual = 1;
+                const url = new URL(window.location);
+                if (termoBusca) {
+                    url.searchParams.set('search', termoBusca);
+                } else {
+                    url.searchParams.delete('search');
+                }
+                url.searchParams.set('page', 1);
+                window.history.pushState({}, '', url);
+
+                carregarAlunos();
+            });
+
+            window.confirmarExclusao = (id, nome) => {
+                document.getElementById('nome-aluno-excluir').textContent = nome;
+
+                const modal = new bootstrap.Modal(document.getElementById('modalConfirmarExclusao'));
+                modal.show();
+
+                document.getElementById('btn-confirmar-exclusao').onclick = async () => {
+                    try {
+                        await api.removerAluno(id);
+                        mostrarAlerta(`Aluno "${nome}" removido com sucesso!`, 'success');
+                        carregarAlunos();
+                        modal.hide();
+                    } catch (erro) {
+                        mostrarAlerta('Erro ao remover aluno: ' + erro.message, 'danger');
+                    }
+                };
+            };
+
+            const mostrarAlerta = (mensagem, tipo = 'info') => {
+                alertas.innerHTML = `
+                    <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
+                        ${mensagem}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                    </div>
+                `;
+
+                setTimeout(() => {
+                    const alerta = alertas.querySelector('.alert');
+                    if (alerta) {
+                        const bsAlert = new bootstrap.Alert(alerta);
+                        bsAlert.close();
+                    }
+                }, 5000);
+            };
+
+            if (urlParams.has('message')) {
+                mostrarAlerta(decodeURIComponent(urlParams.get('message')), urlParams.get('type') || 'success');
+            }
+
+            carregarAlunos();
+        });
+    </script>
+</body>
+
+</html>
