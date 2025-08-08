@@ -1,0 +1,12 @@
+<?php
+
+use Src\Structures\Migration;
+
+class {{className}} extends Migration
+{
+    protected string $table = '{{tableName}}';
+
+    protected array $fields = {{fieldsArray}};
+
+    protected int $qtd_inserts = {{qtdInserts}};
+}
